@@ -7,6 +7,7 @@ import 'package:driver_clone/widgets/online_toggle_button.dart';
 import 'package:driver_clone/widgets/request_card.dart';
 import 'package:driver_clone/widgets/rider_info.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_tindercard/flutter_tindercard.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
@@ -19,6 +20,25 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   GoogleMapController mapController;
   CardController swipeController;
+  String mapStyle;
+
+  void getMapStyle() async {
+    String style = await rootBundle.loadString("assets/grey_detailed.json");
+    if (mounted) {
+      setState(() {
+        mapStyle = style;
+      });
+    } else {
+      mapStyle = style;
+    }
+  }
+
+  @override
+  void initState() {
+    getMapStyle();
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     GlobalKey<ScaffoldState> scaffoldKey = GlobalKey();
@@ -105,19 +125,23 @@ class _HomePageState extends State<HomePage> {
 
                 return Stack(
                   children: <Widget>[
-                    GoogleMap(
-                      onMapCreated: (controller) {
-                        mapController = controller;
-                      },
-                      initialCameraPosition: CameraPosition(
-                          target: LatLng(locationModel.currentLocation.latitude,
-                              locationModel.currentLocation.longitude),
-                          zoom: 17),
-                      myLocationEnabled: true,
-                      zoomControlsEnabled: false,
-                      mapToolbarEnabled: false,
-                      myLocationButtonEnabled: false,
-                    ),
+                    mapStyle == null
+                        ? Container()
+                        : GoogleMap(
+                            onMapCreated: (controller) {
+                              mapController = controller;
+                              mapController.setMapStyle(mapStyle);
+                            },
+                            initialCameraPosition: CameraPosition(
+                                target: LatLng(
+                                    locationModel.currentLocation.latitude,
+                                    locationModel.currentLocation.longitude),
+                                zoom: 12.5),
+                            myLocationEnabled: true,
+                            zoomControlsEnabled: false,
+                            mapToolbarEnabled: false,
+                            myLocationButtonEnabled: false,
+                          ),
                     Align(
                       alignment: Provider.of<TripModel>(context, listen: true)
                                   .requests
